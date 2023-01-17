@@ -26,6 +26,8 @@ import List from "../components/list";
 import PageLayout from "../components/page-layout";
 import StaticMap from "../components/static-map";
 import Favicon from "../public/yext-favicon.ico";
+import Header from "../components/header";
+import Footer from "../components/footer";
 import "../index.css";
 
 /**
@@ -33,22 +35,10 @@ import "../index.css";
  */
 export const config: TemplateConfig = {
   stream: {
-    $id: "my-stream-id-1",
+    $id: "my-stream-id-2",
     // Specifies the exact data that each generated document will contain. This data is passed in
     // directly as props to the default exported function.
-    fields: [
-      "id",
-      "uid",
-      "meta",
-      "name",
-      "address",
-      "mainPhone",
-      "description",
-      "hours",
-      "slug",
-      "geocodedCoordinate",
-      "services",
-    ],
+    fields: ["id", "uid", "meta", "name", "address", "c_locationAddress"],
     // Defines the scope of entities that qualify for this stream.
     filter: {
       entityTypes: ["location"],
@@ -68,11 +58,7 @@ export const config: TemplateConfig = {
  * take on the form: featureName/entityId
  */
 export const getPath: GetPath<TemplateProps> = ({ document }) => {
-  return document.slug
-    ? document.slug
-    : `${document.locale}/${document.address.region}/${document.address.city}/${
-        document.address.line1
-      }-${document.id.toString()}`;
+  return document.slug ? document.slug : `${document.id.toString()}`;
 };
 
 /**
@@ -111,11 +97,11 @@ export const getHeadConfig: GetHeadConfig<TemplateRenderProps> = ({
       {
         type: "link",
         attributes: {
-          rel: 'icon',
-          type: 'image/x-icon',
-          href: Favicon
+          rel: "icon",
+          type: "image/x-icon",
+          href: Favicon,
         },
-      }
+      },
     ],
   };
 };
@@ -134,48 +120,87 @@ const Location: Template<TemplateRenderProps> = ({
   path,
   document,
 }) => {
-  const {
-    _site,
-    name,
-    address,
-    openTime,
-    hours,
-    mainPhone,
-    geocodedCoordinate,
-    services,
-    description,
-  } = document;
+  const { name, address, c_locationAddress } = document;
+
+  const [user, setUser] = React.useState([]);
+  React.useEffect(() => {
+    fetch("https://liveapi-sandbox.yext.com/v2/accounts/me/entities?api_key=ae1f0a5b0056b4aaae9bdf3238d19bf9&v=20230110&entityTypes=location")
+    .then((res)=>res.json())
+    .then((json)=>{
+      setUser(json.response.entities)
+    })
+  },[]);
+
+  // const fetchData = async () => {
+  //   const response = await fetch(
+  //     "https://liveapi-sandbox.yext.com/v2/accounts/me/entities?api_key=ae1f0a5b0056b4aaae9bdf3238d19bf9&v=20230110&entityTypes=location"
+  //   );
+  //   const data = await response.json();
+  //   return setUser(data);
+  // };
+
+  // React.useEffect(() => {
+  //   fetchData();
+  // }, []);
+
+  // console.log('user', user)
+
+  const abc = c_locationAddress.image.map((item: any) => {
+     console.log(item);
+    return <img src={item.url} />;
+  });
 
   return (
     <>
-      <PageLayout _site={_site}>
-        <Banner name={name} address={address} />
+      {/* {name}
+      {address.line1}
+      {description} */}
+      <div>
+      <Header />
         <div className="centered-container">
           <div className="section">
             <div className="grid grid-cols-2 gap-x-10 gap-y-10">
+              <div className="text-xl font-semibold">{` ${name}`}</div>
+
               <div className="bg-gray-100 p-2">
-                <Details address={address} phone={mainPhone}></Details>
-                {services && <List list={services}></List>}
+                <p>{`address :${address.line1}`}</p>
               </div>
-              <div className="bg-gray-100 p-2">
-                {hours && <Hours title={"Restaurant Hours"} hours={hours} />}
-              </div>
-              {geocodedCoordinate && (
-                <StaticMap
-                  latitude={geocodedCoordinate.latitude}
-                  longitude={geocodedCoordinate.longitude}
-                ></StaticMap>
-              )}
+
               <div className="bg-gray-100 p-2">
                 <div className="text-xl font-semibold">{`About ${name}`}</div>
-                <p className="pt-4">{description}</p>
+                <p className="pt-4">{c_locationAddress.description}</p>
               </div>
+              <div className="bg-gray-100 p-2">
+                <div className="text-xl font-semibold"></div>
+                <p className="pt-4">{abc}</p>
+              </div>
+              <div className="text-xl font-semibold"></div>
+              <p className="pt-4">
+                {" "}
+                <a href={c_locationAddress.uRL}> click here for more...</a>
+              </p>
             </div>
           </div>
         </div>
-      </PageLayout>
+        <Footer />
+      </div>
+      {user.map((res:any)=>{
+        return<section>
+          <div className="border-2 border - lightblue-600 pt-4 pb-4 pl-4 pr-4">
+            <a href="#">{res.name}</a>
+            <address>{res.address.city}</address>
+          </div>
+        </section>
+      })}
     </>
   );
 };
 
 export default Location;
+
+// {c_image.map((res:any)=>{
+
+//   return (<>
+//   <img src={res.url}/>
+//   </>)
+//   })};
