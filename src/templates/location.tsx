@@ -182,16 +182,17 @@ const Location: Template<TemplateRenderProps> = ({
             </div>
           </div>
         </div>
-        <Footer />
+        
       </div>
       {user.map((res:any)=>{
         return<section>
           <div className="border-2 border - lightblue-600 pt-4 pb-4 pl-4 pr-4">
             <a href="#">{res.name}</a>
-            <address>{res.address.city}</address>
+            <address>{res.address.line1}</address>
           </div>
         </section>
       })}
+      <div><Footer /></div>
     </>
   );
 };
